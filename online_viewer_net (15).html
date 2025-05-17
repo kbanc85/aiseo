@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Changes To Make Your Website Visible to AI Search - AI Adopters Club</title>
+    <style>
+        :root {
+            --primary-bg: #FFFFFF;
+            --text-color: #333333;
+            --heading-color: #000000;
+            --accent-red: #D90429;
+            --light-red-bg: #FEECEE; /* For "BAD" state indication */
+            --light-gray: #E0E0E0;
+            --card-good-bg: #f0f8ff; /* AliceBlue - for "GOOD" state indication */
+            --toggle-bg-off: #ccc;
+            --toggle-bg-on: var(--accent-red);
+            --toggle-knob: #fff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-size: clamp(14px, 1.5vw + 0.5vmin, 16px); /* Adjusted clamp for slightly better scaling */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 15px 10px;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5vw 0 0.5vw 0;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 15px;
+        }
+        header h1 {
+            color: var(--heading-color);
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: clamp(1.5em, 4vw, 2.2em);
+        }
+        header p.subtitle, .presented-by {
+            font-size: clamp(0.8em, 2.5vw, 1em);
+            margin-bottom: 10px;
+        }
+        .presented-by a { color: var(--accent-red); font-weight: bold; text-decoration: none; }
+        .presented-by a:hover { text-decoration: underline; }
+
+
+        .interactive-section h2 {
+            color: var(--heading-color);
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: clamp(1.3em, 3.5vw, 1.8em);
+        }
+
+        .info-card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); /* Slightly wider min card width */
+            gap: 15px;
+        }
+
+        .info-card {
+            background-color: var(--light-red-bg);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 340px; /* Adjusted min-height for potentially more text */
+        }
+
+        .info-card.is-good {
+            background-color: var(--card-good-bg);
+            border-color: var(--heading-color);
+        }
+
+        .toggle-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            width: 100%;
+            /* cursor: pointer; /* Let label handle cursor for switch */
+        }
+
+        .toggle-label {
+            font-weight: bold;
+            font-size: clamp(0.9em, 2.3vw, 1em);
+            user-select: none;
+            cursor: pointer; /* Make labels clickable to toggle */
+        }
+        .toggle-label.bad-label { color: var(--accent-red); }
+        .toggle-label.good-label { color: var(--heading-color); }
+
+        .switch { /* This is the <label> */
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+            margin: 0 10px;
+            flex-shrink: 0;
+            cursor: pointer; /* Ensure the switch itself is clickable */
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            /* cursor: pointer; /* Inherited from .switch (label) */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg-off);
+            transition: .4s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--toggle-knob);
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--toggle-bg-on);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .card-content {
+            flex-grow: 1;
+            text-align: left; /* Align text to left for readability */
+        }
+        .card-content .icon {
+            font-size: clamp(1.8em, 4vw, 2.2em);
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+        }
+        .card-content h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: clamp(1em, 2.8vw, 1.2em);
+            text-align: center; /* Keep heading centered */
+        }
+        .card-content p { /* Main descriptive paragraph */
+            font-size: clamp(0.8em, 2vw, 0.9em);
+            line-height: 1.5; /* Increased for readability */
+            margin-bottom: 1em; /* This creates the "empty row" effect (1em is roughly one line height) */
+        }
+        .card-content p.example-text {
+            font-style: italic;
+            font-size: clamp(0.75em, 1.8vw, 0.85em);
+            color: #505050;
+            margin-top: 0;
+            line-height: 1.4; /* Adjusted for example text */
+        }
+
+        .content-bad, .content-good {
+            display: none;
+        }
+        .info-card.is-bad .content-bad,
+        .info-card.is-good .content-good {
+            display: block;
+        }
+
+        .intro-section, .outro-section {
+            background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;
+        }
+        .intro-section h2, .outro-section h2 { color: var(--heading-color); font-size: clamp(1.3em, 3vw, 1.7em); }
+        .intro-section p { font-size: clamp(0.9em, 2.2vw, 1em); }
+        .intro-section p.instructions { font-weight: bold; color: var(--accent-red); margin-top: 8px; font-size: clamp(0.9em, 2.5vw, 1.05em); }
+
+        footer { text-align: center; padding: 15px 0; margin-top: 30px; border-top: 1px solid var(--light-gray); font-size: 0.85em; }
+        footer a { color: var(--accent-red); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Simple Changes To Make Your Website Visible to AI Search</h1>
+        <p class="subtitle">An Interactive Flashcard Guide</p>
+        <p class="presented-by">
+            Presented by the <a href="https://aiadopters.club" target="_blank">AI Adopters Club</a>.
+            Inspired by our article: <a href="https://aiadopters.club/p/aiseo" target="_blank">AI Search Is Devouring Your SEO Traffic</a>.
+        </p>
+    </header>
+
+    <div class="container">
+        <section class="intro-section">
+            <h2>Unlock AI Search Visibility: Good vs. Bad Practices</h2>
+            <p>AI is rewriting search rules. Use these interactive flashcards to quickly learn crucial changes for your website. Your goal: make your content AI's first choice.</p>
+            <p class="instructions">Tap or click the toggle (or the "BAD"/"GOOD" labels) on each card to switch views!</p>
+        </section>
+
+        <section class="interactive-section" id="framework">
+            <h2>The AI-First Content Framework</h2>
+            <div class="info-card-container">
+                <div class="info-card is-bad" id="card-answer-first">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-answer-first">
+                            <input type="checkbox" class="card-toggle" id="toggle-answer-first">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">⏳</span>
+                            <h3>Answer First, Context Later</h3>
+                            <p>Wasting time with long intros, burying the main point deep in the content. Users leave; AI can't find the answer quickly.</p>
+                            <p class="example-text"><em>e.g., A 2,500-word guide on "Fixing a Leaky Faucet" starts with plumbing history, only reaching repair steps by paragraph 12.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🎯</span>
+                            <h3>Answer First, Context Later</h3>
+                            <p>Provide the direct answer or core solution immediately in the first paragraph or section. Then, elaborate with details, steps, or context. This satisfies users and gives AI clear takeaways.</p>
+                            <p class="example-text"><em>e.g., Article starts: "To fix a leaky faucet: 1. Shut off water. 2. Disassemble handle. 3. Replace O-ring..." Further details for each step follow.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card is-bad" id="card-semantic-structure">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-semantic-structure">
+                            <input type="checkbox" class="card-toggle" id="toggle-semantic-structure">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🧩</span>
+                            <h3>Semantic Structure</h3>
+                            <p>Content jumps randomly between features, prices, and use cases without clear organization. Confusing for readers and hard for AI to categorize.</p>
+                            <p class="example-text"><em>e.g., A product review article mixes pros, cons, pricing, and user stories haphazardly throughout the text.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🧱</span>
+                            <h3>Semantic Structure</h3>
+                            <p>Organize content with clear, logical headings (H2, H3, etc.) and consistent sections. Use lists for steps or features. This helps both humans and AI easily extract and compare information.</p>
+                            <p class="example-text"><em>e.g., Product comparison: Intro $\rightarrow$ Product A (Features, Price, Pros, Cons) $\rightarrow$ Product B (Features, Price, Pros, Cons) $\rightarrow$ Verdict.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card is-bad" id="card-authority">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-authority">
+                            <input type="checkbox" class="card-toggle" id="toggle-authority">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🤷</span>
+                            <h3>Authority & Expertise</h3>
+                            <p>Making broad claims or statements without any supporting evidence, data, or references to credible sources. Looks weak and untrustworthy.</p>
+                            <p class="example-text"><em>e.g., "Our marketing strategy is the best for small businesses." (No proof offered).</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">📊</span>
+                            <h3>Authority & Expertise</h3>
+                            <p>Back up claims with specific data, statistics, or links to original research/reports. Mention author credentials or relevant experience (E-E-A-T). AI values and often cites authoritative sources.</p>
+                            <p class="example-text"><em>e.g., "Our strategy increased client leads by 32% (see Case Study X), aligning with the Digital Marketing Institute's findings on SMBs (link to report)."</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card is-bad" id="card-reviews">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-reviews">
+                            <input type="checkbox" class="card-toggle" id="toggle-reviews">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🕸️</span>
+                            <h3>Reviews & Feedback Loops</h3>
+                            <p>Having a static "Reviews" page with old testimonials, no schema markup, and no active process to gather new ones. Offers little current social proof.</p>
+                             <p class="example-text"><em>e.g., Testimonials from 2 years ago, no link to Google Reviews or Trustpilot.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🔄</span>
+                            <h3>Reviews & Feedback Loops</h3>
+                            <p>Implement a system to regularly request reviews from satisfied customers, directing them to key platforms (Google Business Profile, industry sites). Display fresh, schema-marked reviews on your site.</p>
+                            <p class="example-text"><em>e.g., Post-purchase email: "Enjoyed our service? Please leave a review on Google [link]!" Embed a live feed of recent 5-star Google reviews on the homepage.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="info-card is-bad" id="card-schema-markup">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-schema-markup">
+                            <input type="checkbox" class="card-toggle" id="toggle-schema-markup">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">❓</span>
+                            <h3>Schema Markup for AI</h3>
+                            <p>Content like FAQs or How-To guides formatted as plain HTML paragraphs. AI has to guess the structure and relationships, reducing rich snippet chances.</p>
+                            <p class="example-text"><em>e.g., A support page lists questions and answers as simple text without any structured data.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🤖</span>
+                            <h3>Schema Markup for AI</h3>
+                            <p>Use relevant schema.org vocabulary (e.g., FAQPage, HowTo, Product, Article) to explicitly define content elements for search engines. This helps AI understand and feature your content accurately.</p>
+                            <p class="example-text"><em>e.g., Wrap each Q&A pair on an FAQ page with `@type: Question` and `@type: Answer` using JSON-LD or microdata. Test with Google's Rich Results Test.</em></p>
+                        </div>
+                    </div>
+                </div>
+            </div> </section> <section class="interactive-section" id="playbook">
+            <h2>Your 8-Point AI Search Optimization Playbook</h2>
+            <div class="info-card-container">
+                <div class="info-card is-bad" id="card-list-domination">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-list-domination">
+                            <input type="checkbox" class="card-toggle" id="toggle-list-domination">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🎣</span>
+                            <h3>1. List Domination</h3>
+                            <p>Creating a product and passively hoping industry publications or blogs will eventually discover and include it in their "Best X Tools" lists.</p>
+                            <p class="example-text"><em>e.g., Launching a new SaaS tool and waiting for mentions.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🎯</span>
+                            <h3>1. List Domination</h3>
+                            <p>Identify key listicles in your niche. Develop a unique feature addressing a gap or pain point mentioned. Proactively pitch list authors with data, visuals, and a clear reason for inclusion.</p>
+                             <p class="example-text"><em>e.g., "Our tool now offers X, which your 'Top 5 Project Tools' review noted was missing. Here’s a demo & comparison graphic."</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-review-acceleration">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-review-acceleration">
+                            <input type="checkbox" class="card-toggle" id="toggle-review-acceleration">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">✉️</span>
+                            <h3>2. Review Acceleration</h3>
+                            <p>Sending generic "please leave us a review" emails to all customers, or not asking at all. Results in few, often unenthusiastic reviews.</p>
+                             <p class="example-text"><em>e.g., A monthly newsletter footer link: "Review us!"</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🌟</span>
+                            <h3>2. Review Acceleration</h3>
+                            <p>Automate review requests to trigger after positive interactions (e.g., high NPS score, repeat purchase). Personalize the ask, mention their specific positive experience, and provide direct links to GMB or key review sites.</p>
+                             <p class="example-text"><em>e.g., Email: "Glad you loved feature X! Could you share your thoughts on Capterra? [link]"</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-brand-control">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-brand-control">
+                            <input type="checkbox" class="card-toggle" id="toggle-brand-control">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🌬️</span>
+                            <h3>3. Brand Control</h3>
+                            <p>Allowing your brand's story and information to develop organically (and often inaccurately) across the web. AI learns from this mixed bag.</p>
+                             <p class="example-text"><em>e.g., Assuming your "About Us" page is enough.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🛡️</span>
+                            <h3>3. Brand Control</h3>
+                            <p>Create an authoritative brand resource center (or a detailed About page with sub-sections for mission, values, history, team). Regularly query AI ("What does [MyCompany] do?") and provide feedback or update source content to correct misrepresentations.</p>
+                             <p class="example-text"><em>e.g., Maintain a "Press Kit" page with official descriptions. If AI gets your founding year wrong, update your primary sources.</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-schema-implementation-pb">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-schema-implementation-pb">
+                            <input type="checkbox" class="card-toggle" id="toggle-schema-implementation-pb">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">📍</span>
+                            <h3>4. Schema Implementation</h3>
+                            <p>Only adding basic Organization schema to the homepage and considering structured data efforts complete. Misses vast opportunities.</p>
+                             <p class="example-text"><em>e.g., Using a plugin that only adds sitewide Organization schema.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🗺️</span>
+                            <h3>4. Schema Implementation</h3>
+                            <p>Develop a comprehensive schema strategy. Apply relevant types: HowTo for tutorials, FAQPage for Q&A sections, Product for offerings (with Offer, AggregateRating), Article for blog posts, VideoObject, etc. Test all before releasing content.</p>
+                            <p class="example-text"><em>e.g., A recipe blog post uses Recipe schema including ingredients, steps, cookTime, and nutrition information. A product page uses Product schema with price, availability, and review snippets.</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-intent-alignment">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-intent-alignment">
+                            <input type="checkbox" class="card-toggle" id="toggle-intent-alignment">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🔑</span>
+                            <h3>5. Intent Alignment</h3>
+                            <p>Creating generic content around broad keywords (e.g., "best CRM software") without addressing the diverse needs and evaluation criteria of different user segments.</p>
+                            <p class="example-text"><em>e.g., One long article trying to cover all aspects of CRM for everyone.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">💡</span>
+                            <h3>5. Intent Alignment</h3>
+                            <p>Develop a resource center with content tailored to buyer personas at each journey stage (awareness, consideration, decision). Answer specific questions behind the keywords for each segment. </p>
+                            <p class="example-text"><em>e.g., Separate articles: "Do I Need a CRM for My Startup?", "Top 5 CRMs for Sales Teams: Feature Comparison", "How to Implement a CRM: A Step-by-Step Guide".</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-technical-excellence">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-technical-excellence">
+                            <input type="checkbox" class="card-toggle" id="toggle-technical-excellence">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🐌</span>
+                            <h3>6. Technical Excellence</h3>
+                            <p>Focusing only on content while ignoring slow load times, poor mobile rendering, complex navigation, or JavaScript-dependent interfaces that hinder AI crawlers.</p>
+                            <p class="example-text"><em>e.g., A beautiful site that takes 10 seconds to load on mobile.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🚀</span>
+                            <h3>6. Technical Excellence</h3>
+                            <p>Ensure a flawless technical foundation: sub-2-second load times (LCP), mobile-friendliness, clean HTML, logical heading hierarchy (H1, H2s), sitemap, robots.txt, and critical content accessible without JS.</p>
+                            <p class="example-text"><em>e.g., Optimize images, leverage browser caching, use a CDN. Ensure main content is in HTML, not loaded solely via JS. Test with PageSpeed Insights.</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-traditional-seo-pb">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-traditional-seo-pb">
+                            <input type="checkbox" class="card-toggle" id="toggle-traditional-seo-pb">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">➗</span>
+                            <h3>7. Traditional SEO</h3>
+                            <p>Abandoning all traditional SEO practices (keyword research, link building, on-page optimization) assuming AI makes them obsolete.</p>
+                            <p class="example-text"><em>e.g., "Keywords don't matter anymore with AI."</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">🔗</span>
+                            <h3>7. Traditional SEO</h3>
+                            <p>Maintain strong SEO fundamentals. High organic rankings correlate with inclusion in AI Overviews. Quality content, relevant keywords, good internal linking, and authoritative backlinks still signal importance to all search systems, including AI.</p>
+                             <p class="example-text"><em>e.g., Continue to optimize title tags, meta descriptions, image alt text, and build topical authority around core subjects.</em></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card is-bad" id="card-visibility-monitoring">
+                    <div class="toggle-area">
+                        <span class="toggle-label bad-label">BAD</span>
+                        <label class="switch" for="toggle-visibility-monitoring">
+                            <input type="checkbox" class="card-toggle" id="toggle-visibility-monitoring">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label good-label">GOOD</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-bad">
+                            <span class="icon">🙈</span>
+                            <h3>8. Visibility Monitoring</h3>
+                            <p>Only tracking traditional metrics (traffic, rankings, conversions) without insight into how often content is featured in AI-generated answers or SGE.</p>
+                            <p class="example-text"><em>e.g., Relying solely on Google Analytics for performance.</em></p>
+                        </div>
+                        <div class="content-good">
+                            <span class="icon">📈</span>
+                            <h3>8. Visibility Monitoring</h3>
+                            <p>Regularly test key business queries on AI search platforms (Google SGE, Perplexity, etc.). Track visibility rates in AI answers. Use tools (if available) or manual checks to assemble a "visibility dashboard" identifying gaps and opportunities.</p>
+                            <p class="example-text"><em>e.g., Weekly, search "best [your product type] for [use case]" on various AI tools. Note if your content/brand appears and how. Adjust content to better answer these AI-surfaced queries.</em></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div> </section> <section class="outro-section">
+            <h2>The Future Isn't Coming. It's Here.</h2>
+            <p>AI search is actively reshaping discovery. Adaptable businesses aren't just surviving; they're seizing new ground. The real question isn't *if* you'll change, but if you'll do it before it's too late.</p>
+            <p>Ready to make AI your advantage? Join the <a href="https://aiadopters.club" target="_blank">AI Adopters Club</a>.</p>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; <span id="currentYear"></span> AI Adopters Club. Adapt & Create.</p>
+        <p>Your tactical guide to leveraging AI in business.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoCards = document.querySelectorAll('.info-card');
+
+            infoCards.forEach(card => {
+                const toggleInput = card.querySelector('.card-toggle');
+                const toggleArea = card.querySelector('.toggle-area'); // The whole bar including labels and switch
+
+                function updateCardState(currentCard, isChecked) {
+                    if (isChecked) {
+                        currentCard.classList.remove('is-bad');
+                        currentCard.classList.add('is-good');
+                    } else {
+                        currentCard.classList.remove('is-good');
+                        currentCard.classList.add('is-bad');
+                    }
+                }
+
+                // Set initial state
+                updateCardState(card, toggleInput.checked);
+
+                // Event listener for when the checkbox state *changes*
+                // This is the most reliable way, as it covers clicks on the label (due to 'for' attribute),
+                // direct clicks on the checkbox (if it were visible), and keyboard interaction.
+                toggleInput.addEventListener('change', function() {
+                    updateCardState(card, this.checked);
+                });
+
+                // Optional: If you still want the entire toggle-area to be clickable
+                // beyond just the label for the switch, this can be added.
+                // However, with proper label usage, this might be redundant or could
+                // lead to double events if not handled carefully.
+                // For maximum robustness, relying on the label's default behavior is best.
+                // If direct clicks on labels next to the switch are desired to also toggle:
+                if (toggleArea) {
+                    const badLabel = toggleArea.querySelector('.bad-label');
+                    const goodLabel = toggleArea.querySelector('.good-label');
+
+                    function handleLabelClick() {
+                        toggleInput.checked = !toggleInput.checked;
+                        // Manually trigger the change event on the checkbox
+                        // so our primary listener handles the state update.
+                        toggleInput.dispatchEvent(new Event('change'));
+                    }
+
+                    if(badLabel) badLabel.addEventListener('click', handleLabelClick);
+                    if(goodLabel) goodLabel.addEventListener('click', handleLabelClick);
+                }
+
+            });
+
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        });
+    </script>
+
+</body>
+</html>
