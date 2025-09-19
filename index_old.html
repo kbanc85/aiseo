@@ -1,598 +1,259 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Changes To Make Your Website Visible to AI Search - AI Adopters Club</title>
-    <style>
-        :root {
-            --primary-bg: #FFFFFF;
-            --text-color: #333333;
-            --heading-color: #000000;
-            --accent-red: #D90429;
-            --light-red-bg: #FEECEE; /* For "BAD" state indication */
-            --light-gray: #E0E0E0;
-            --card-good-bg: #f0f8ff; /* AliceBlue - for "GOOD" state indication */
-            --toggle-bg-off: #ccc;
-            --toggle-bg-on: var(--accent-red);
-            --toggle-knob: #fff;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Latent Library — machine oriented</title>
+  <meta name="description" content="A machine oriented placeholder. Humans may peek but reading is intentionally difficult." />
+  <meta name="robots" content="index,follow" />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#0a0a0a;
+      --muted:#3d3d3d;
+      --accent:#d63233;
+      --lens:130px; /* lens radius */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg);
+      color:var(--fg);
+      overflow:hidden;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.5;
-            margin: 0;
-            padding: 0;
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            font-size: clamp(14px, 1.5vw + 1vmin, 16px);
-            -webkit-tap-highlight-color: transparent; /* Remove tap highlight globally */
-        }
+    /* Frame */
+    .wrap{
+      position:relative;
+      height:100%;
+      width:100%;
+      display:grid;
+      place-items:center;
+      padding:clamp(16px,2vmin,32px);
+      isolation:isolate; /* ensure overlay layers behave */
+    }
 
-        .container {
-            width: 90%;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 15px 10px;
-        }
+    /* Background micro grid for a subtle machine vibe */
+    .wrap::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(to right, rgba(10,10,10,.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(10,10,10,.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events:none;
+      z-index:0;
+    }
 
-        header {
-            text-align: center;
-            padding: 1.5vw 0 0.5vw 0;
-            border-bottom: 1px solid var(--light-gray);
-            margin-bottom: 15px;
-        }
-        header h1 {
-            color: var(--heading-color);
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: clamp(1.5em, 4vw, 2.2em); /* Adjusted for new title */
-        }
-        header p.subtitle, .presented-by {
-            font-size: clamp(0.8em, 2.5vw, 1em);
-            margin-bottom: 10px;
-        }
-        .presented-by a { color: var(--accent-red); font-weight: bold; text-decoration: none; }
-        .presented-by a:hover { text-decoration: underline; }
+    /* Scanner lines */
+    .wrap::after{
+      content:"";
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(214,50,51,.08),
+          rgba(214,50,51,.08) 2px,
+          transparent 2px,
+          transparent 6px
+        );
+      mix-blend-mode:multiply;
+      animation:scan 7s linear infinite;
+    }
+    @keyframes scan{0%{transform:translateY(-20%)}100%{transform:translateY(20%)}}
 
+    /* Main content (intentionally readable only through a lens) */
+    #content{
+      position:relative;
+      z-index:2;
+      max-width:min(1100px, 90vw);
+      line-height:1.65;
+      font-size:clamp(18px, 2.1vmin, 22px);
+      padding:clamp(16px,2vmin,24px) clamp(18px,2.5vmin,28px);
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:16px;
+      background:rgba(255,255,255,.9);
+      backdrop-filter:saturate(1.05);
+    }
+    #content h1{
+      margin:0 0 .35em 0;
+      font-size:clamp(28px,4.2vmin,40px);
+      letter-spacing:.2px;
+    }
+    #content h1 .dot{color:var(--accent)}
 
-        .interactive-section h2 {
-            color: var(--heading-color);
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: clamp(1.3em, 3.5vw, 1.8em);
-        }
+    /* "Not readable" effect: a veil that blurs everything except a small moving lens. */
+    .veil{
+      position:fixed; inset:0; z-index:4; pointer-events:none;
+      /* Blur what is behind the veil */
+      backdrop-filter: blur(9px) saturate(1.05) contrast(.95);
+      -webkit-backdrop-filter: blur(9px) saturate(1.05) contrast(.95);
+      /* Cut a circular hole that follows the cursor */
+      --x:50vw; --y:50vh;
+      mask: radial-gradient(circle var(--lens) at var(--x) var(--y), transparent 0 var(--lens), white calc(var(--lens) + 24px));
+      -webkit-mask: radial-gradient(circle var(--lens) at var(--x) var(--y), transparent 0 var(--lens), white calc(var(--lens) + 24px));
+      transition:opacity .2s ease;
+    }
 
-        .info-card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-        }
+    /* Fallback for browsers without backdrop-filter: blur the content instead */
+    @supports not ((backdrop-filter: blur(1px))) {
+      .veil{display:none}
+      #content{filter:blur(7px)}
+      .tip{display:none}
+    }
 
-        .info-card {
-            background-color: var(--light-red-bg);
-            border: 1px solid var(--accent-red);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            min-height: 320px; /* Adjusted min-height */
-        }
+    /* Top centre message */
+    .badge{
+      position:fixed; left:50%; top:18px; transform:translateX(-50%);
+      z-index:5; user-select:none;
+      font-size:13px; letter-spacing:.5px; text-transform:uppercase;
+      background:#111; color:#fff; padding:8px 12px; border-radius:999px;
+      display:flex; align-items:center; gap:8px;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+    .blink{width:8px; height:8px; border-radius:50%; background:var(--accent); animation:blink 1.4s infinite}
+    @keyframes blink{0%,60%,100%{opacity:.25} 30%{opacity:1}}
 
-        .info-card.is-good {
-            background-color: var(--card-good-bg);
-            border-color: var(--heading-color); /* Or a light blue like var(--accent-red) but blue */
-        }
+    /* Centre title card */
+    .card{
+      position:absolute; inset:0; display:grid; place-items:center; z-index:3; pointer-events:none;
+    }
+    .card h2{
+      margin:0; font-weight:700; font-size:clamp(22px,4vmin,34px);
+      color:#111; text-align:center;
+    }
+    .glitch{ position:relative; display:inline-block }
+    .glitch::before,.glitch::after{
+      content:attr(data-text); position:absolute; inset:0; pointer-events:none;
+    }
+    .glitch::before{ transform:translate(1px,-1px); color:#00a3ff; mix-blend-mode:multiply; animation:shiftA 2s infinite linear alternate }
+    .glitch::after{ transform:translate(-1px,1px); color:#ff0066; mix-blend-mode:multiply; animation:shiftB 2.2s infinite linear alternate }
+    @keyframes shiftA{from{clip-path:inset(0 0 60% 0)} to{clip-path:inset(40% 0 0 0)}}
+    @keyframes shiftB{from{clip-path:inset(0 0 35% 0)} to{clip-path:inset(65% 0 0 0)}}
+    @media (prefers-reduced-motion: reduce){
+      .wrap::after{animation:none}
+      .glitch::before,.glitch::after{display:none}
+    }
 
-        .toggle-area {
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* Pushes BAD and GOOD labels apart */
-            margin-bottom: 15px; /* Increased margin for readability */
-            width: 100%;
-            cursor: pointer; /* Make the whole toggle area indicate clickability */
-        }
+    /* Footer tip */
+    .tip{
+      position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+      z-index:5; font-size:12px; color:#444; background:#fff; border:1px solid rgba(0,0,0,.08);
+      padding:8px 10px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.06);
+    }
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border:1px solid #bbb; border-bottom-width:2px; border-radius:6px; padding:.5px 5px; background:#f7f7f7; font-size:11px}
 
-        .toggle-label {
-            font-weight: bold;
-            font-size: clamp(0.9em, 2.3vw, 1em); /* Slightly larger labels */
-            user-select: none; /* Prevent text selection on tap */
-        }
-        .toggle-label.bad-label { color: var(--accent-red); }
-        .toggle-label.good-label { color: var(--heading-color); }
+    /* Hidden unlock toast */
+    .toast{position:fixed; right:16px; bottom:16px; z-index:6; padding:10px 12px; border-radius:10px; background:#111; color:#fff; font-size:13px; opacity:0; transform:translateY(8px); transition:.25s}
+    .toast.show{opacity:1; transform:translateY(0)}
 
-
-        /* Custom Toggle Switch CSS */
-        .switch { /* This is the <label> */
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-            margin: 0 10px;
-            flex-shrink: 0; /* Prevent switch from shrinking */
-        }
-        .switch input { /* The actual checkbox */
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider { /* The visual track of the toggle */
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--toggle-bg-off);
-            transition: .4s;
-            border-radius: 26px;
-        }
-        .slider:before { /* The visual knob of the toggle */
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--toggle-knob);
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--toggle-bg-on);
-        }
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-        /* End Custom Toggle Switch CSS */
-
-        .card-content {
-            flex-grow: 1;
-        }
-        .card-content .icon {
-            font-size: clamp(1.8em, 4vw, 2.2em);
-            margin-bottom: 8px;
-            display: block;
-            text-align: center;
-        }
-        .card-content h3 {
-            margin-top: 0;
-            margin-bottom: 10px; /* Space after H3 */
-            font-size: clamp(1em, 2.8vw, 1.2em);
-            text-align: center;
-        }
-        .card-content p { /* Main descriptive paragraph */
-            font-size: clamp(0.8em, 2vw, 0.9em);
-            line-height: 1.45;
-            margin-bottom: 12px; /* Added space for "empty row" effect */
-        }
-        .card-content p.example-text {
-            font-style: italic;
-            font-size: clamp(0.75em, 1.8vw, 0.85em);
-            color: #505050;
-            margin-top: 0; /* Removed top margin as p above has bottom margin */
-        }
-
-        .content-bad, .content-good {
-            display: none;
-        }
-        .info-card.is-bad .content-bad,
-        .info-card.is-good .content-good {
-            display: block;
-        }
-
-        .intro-section, .outro-section {
-            background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;
-        }
-        .intro-section h2, .outro-section h2 { color: var(--heading-color); font-size: clamp(1.3em, 3vw, 1.7em); }
-        .intro-section p { font-size: clamp(0.9em, 2.2vw, 1em); }
-        .intro-section p.instructions { font-weight: bold; color: var(--accent-red); margin-top: 8px; font-size: clamp(0.9em, 2.5vw, 1.05em); }
-
-        footer { text-align: center; padding: 15px 0; margin-top: 30px; border-top: 1px solid var(--light-gray); font-size: 0.85em; }
-        footer a { color: var(--accent-red); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
-
-    </style>
+    /* Human escape hatch */
+    .human{
+      position:fixed; right:14px; top:14px; z-index:6;
+      font-size:12px; color:#111; background:#fff; border:1px solid rgba(0,0,0,.1);
+      padding:7px 10px; border-radius:8px; text-decoration:none;
+    }
+    .human:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  </style>
 </head>
 <body>
+  <a class="human" href="https://example.com" rel="noopener" aria-label="For humans, visit the primary site">For humans</a>
 
-    <header>
-        <h1>Simple Changes To Make Your Website Visible to AI Search</h1>
-        <p class="subtitle">An Interactive Flashcard Guide</p>
-        <p class="presented-by">
-            Presented by the <a href="https://aiadopters.club" target="_blank">AI Adopters Club</a>.
-            Inspired by our article: <a href="https://aiadopters.club/p/aiseo" target="_blank">AI Search Is Devouring Your SEO Traffic</a>.
-        </p>
-    </header>
+  <div class="badge" aria-hidden="true"><span class="blink"></span> machine oriented</div>
 
-    <div class="container">
-        <section class="intro-section">
-            <h2>Unlock AI Search Visibility: Good vs. Bad Practices</h2>
-            <p>AI is rewriting search rules. Use these interactive flashcards to quickly learn crucial changes for your website. Your goal: make your content AI's first choice.</p>
-            <p class="instructions">Tap or click the toggle (or the "BAD"/"GOOD" labels) on each card to switch views!</p>
-        </section>
-
-        <section class="interactive-section" id="framework">
-            <h2>The AI-First Content Framework</h2>
-            <div class="info-card-container">
-                <div class="info-card is-bad" id="card-answer-first"> <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-answer-first"> <input type="checkbox" class="card-toggle" id="toggle-answer-first">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">⏳</span>
-                            <h3>Answer First, Context Later</h3>
-                            <p>Lengthy intros, burying the core message. Users hunt; AI ignores.</p>
-                            <p class="example-text"><em>e.g., 2,500 words on faucet history before the actual fix.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🎯</span>
-                            <h3>Answer First, Context Later</h3>
-                            <p>Direct answer upfront. Lead with the solution. Supporting details follow, clearly.</p>
-                             <p class="example-text"><em>e.g., "To fix a leaky faucet: Do X, Y, Z. Then explain."</em></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-card is-bad" id="card-semantic-structure">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-semantic-structure">
-                            <input type="checkbox" class="card-toggle" id="toggle-semantic-structure">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🧩</span>
-                            <h3>Semantic Structure</h3>
-                            <p>Jumbled content, erratic topic jumps. Confuses humans, derails AI.</p>
-                            <p class="example-text"><em>e.g., Product comparisons that are a feature salad, no clear flow.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🧱</span>
-                            <h3>Semantic Structure</h3>
-                            <p>Clear, logical sections. Consistent flow. Easy for AI to parse, intuitive for users.</p>
-                            <p class="example-text"><em>e.g., Product X: Core Features $\rightarrow$ Pricing $\rightarrow$ Ideal Users $\rightarrow$ Verdict.</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-authority">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-authority">
-                            <input type="checkbox" class="card-toggle" id="toggle-authority">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🤷</span>
-                            <h3>Authority & Expertise</h3>
-                            <p>Vague assertions, no evidence, data, or real-world proof. Zero credibility.</p>
-                            <p class="example-text"><em>e.g., "Social media marketing is essential."</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">📊</span>
-                            <h3>Authority & Expertise</h3>
-                            <p>Specific data, linked sources, verifiable case studies. Prove your claims.</p>
-                            <p class="example-text"><em>e.g., "Social media drives 32% acquisition (Report X)."</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-reviews">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-reviews">
-                            <input type="checkbox" class="card-toggle" id="toggle-reviews">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🕸️</span>
-                            <h3>Reviews & Feedback Loops</h3>
-                            <p>Outdated testimonials on a forgotten page. No schema, no integration. Dead social proof.</p>
-                             <p class="example-text"><em>e.g., Static "Reviews" page, untouched since 2023.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🔄</span>
-                            <h3>Reviews & Feedback Loops</h3>
-                            <p>Systematic review generation. Live feeds, GMB focus, structured data for AI.</p>
-                            <p class="example-text"><em>e.g., Funnel to GMB, embed live 5-star widget.</em></p>
-                        </div>
-                    </div>
-                </div>
-                 <div class="info-card is-bad" id="card-schema-markup">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-schema-markup">
-                            <input type="checkbox" class="card-toggle" id="toggle-schema-markup">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">❓</span>
-                            <h3>Schema Markup for AI</h3>
-                            <p>Plain HTML for complex content. AI struggles to interpret relationships accurately.</p>
-                            <p class="example-text"><em>e.g., Help center FAQs as simple text paragraphs.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🤖</span>
-                            <h3>Schema Markup for AI</h3>
-                            <p>Comprehensive schema (FAQ, HowTo) explicitly defines content structure for AI.</p>
-                            <p class="example-text"><em>e.g., FAQPage schema clearly marks Q&A pairs.</em></p>
-                        </div>
-                    </div>
-                </div>
-            </div> </section> <section class="interactive-section" id="playbook">
-            <h2>Your 8-Point AI Search Optimization Playbook</h2>
-            <div class="info-card-container">
-                <div class="info-card is-bad" id="card-list-domination">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-list-domination">
-                            <input type="checkbox" class="card-toggle" id="toggle-list-domination">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🎣</span>
-                            <h3>1. List Domination</h3>
-                            <p>Passive hope: Create product, wait for listicle inclusion. Relies on luck.</p>
-                            <p class="example-text"><em>e.g., Hoping "Best Tools for X" blogs find you.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🎯</span>
-                            <h3>1. List Domination</h3>
-                            <p>Proactive: Address listicle pain points. Pitch publishers with data & visuals.</p>
-                             <p class="example-text"><em>e.g., "Our feature solves X; here's how."</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-review-acceleration">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-review-acceleration">
-                            <input type="checkbox" class="card-toggle" id="toggle-review-acceleration">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">✉️</span>
-                            <h3>2. Review Acceleration</h3>
-                            <p>Generic "leave a review" email blasts. Low engagement, often annoying.</p>
-                             <p class="example-text"><em>e.g., Same review request template for all.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🌟</span>
-                            <h3>2. Review Acceleration</h3>
-                            <p>Automated, personalized requests to happy customers, direct to GMB.</p>
-                             <p class="example-text"><em>e.g., "Loved your feedback! Mind sharing on Google?"</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-brand-control">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-brand-control">
-                            <input type="checkbox" class="card-toggle" id="toggle-brand-control">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🌬️</span>
-                            <h3>3. Brand Control</h3>
-                            <p>Brand narrative left to chance. AI absorbs whatever it finds, correct or not.</p>
-                             <p class="example-text"><em>e.g., No monitoring of how AI describes you.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🛡️</span>
-                            <h3>3. Brand Control</h3>
-                            <p>Authoritative brand hub. Regularly test & correct AI's portrayal. Own narrative.</p>
-                             <p class="example-text"><em>e.g., Query "What is [MyCo]?" and fix.</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-schema-implementation-pb"> <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-schema-implementation-pb">
-                            <input type="checkbox" class="card-toggle" id="toggle-schema-implementation-pb">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">📍</span>
-                            <h3>4. Schema Implementation</h3>
-                            <p>Minimal effort: Basic Organization schema. Superficial, misses opportunities.</p>
-                             <p class="example-text"><em>e.g., Adding one schema tag and calling it "done."</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🗺️</span>
-                            <h3>4. Schema Implementation</h3>
-                            <p>Comprehensive: HowTo, FAQ, Product, Review. Test rigorously before release.</p>
-                            <p class="example-text"><em>e.g., Use Google's Rich Results Test.</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-intent-alignment">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-intent-alignment">
-                            <input type="checkbox" class="card-toggle" id="toggle-intent-alignment">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🔑</span>
-                            <h3>5. Intent Alignment</h3>
-                            <p>Keyword-focused content, ignores varied user needs/journey stages. Too broad.</p>
-                            <p class="example-text"><em>e.g., "Best CRM" content, no user segments.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">💡</span>
-                            <h3>5. Intent Alignment</h3>
-                            <p>Resource hub addressing diverse buyer personas at each decision stage.</p>
-                            <p class="example-text"><em>e.g., Content for "Do I need CRM?" vs "CRM compare."</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-technical-excellence">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-technical-excellence">
-                            <input type="checkbox" class="card-toggle" id="toggle-technical-excellence">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🐌</span>
-                            <h3>6. Technical Excellence</h3>
-                            <p>Content focus while site is slow, clunky on mobile, JS-reliant. AI struggles.</p>
-                            <p class="example-text"><em>e.g., Ignoring Core Web Vitals, mobile rendering.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🚀</span>
-                            <h3>6. Technical Excellence</h3>
-                            <p>Flawless foundation: Sub-2-sec loads, clean HTML, critical content accessible.</p>
-                            <p class="example-text"><em>e.g., Ensure AI can easily crawl vital content.</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-traditional-seo-pb">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-traditional-seo-pb">
-                            <input type="checkbox" class="card-toggle" id="toggle-traditional-seo-pb">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">➗</span>
-                            <h3>7. Traditional SEO</h3>
-                            <p>Abandoning traditional SEO for AI focus. Ignores their symbiotic relationship.</p>
-                            <p class="example-text"><em>e.g., "AI is new, so old SEO is dead."</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">🔗</span>
-                            <h3>7. Traditional SEO</h3>
-                            <p>Strong organic ranking boosts AI Overview inclusion. Good SEO fuels AI visibility.</p>
-                             <p class="example-text"><em>e.g., Top SERP positions often cited in AI answers.</em></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-card is-bad" id="card-visibility-monitoring">
-                    <div class="toggle-area">
-                        <span class="toggle-label bad-label">BAD</span>
-                        <label class="switch" for="toggle-visibility-monitoring">
-                            <input type="checkbox" class="card-toggle" id="toggle-visibility-monitoring">
-                            <span class="slider"></span>
-                        </label>
-                        <span class="toggle-label good-label">GOOD</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="content-bad">
-                            <span class="icon">🙈</span>
-                            <h3>8. Visibility Monitoring</h3>
-                            <p>Tracking only traditional traffic/conversions. Blind to AI answer features.</p>
-                            <p class="example-text"><em>e.g., Not knowing if you appear in AI Overviews.</em></p>
-                        </div>
-                        <div class="content-good">
-                            <span class="icon">📈</span>
-                            <h3>8. Visibility Monitoring</h3>
-                            <p>Regularly test key queries on AI platforms. Track AI visibility. Identify gaps.</p>
-                            <p class="example-text"><em>e.g., Use a "visibility dashboard" for AI answers.</em></p>
-                        </div>
-                    </div>
-                </div>
-
-
-            </div> </section> <section class="outro-section">
-            <h2>The Future Isn't Coming. It's Here.</h2>
-            <p>AI search is actively reshaping discovery. Adaptable businesses aren't just surviving; they're seizing new ground. The real question isn't *if* you'll change, but if you'll do it before it's too late.</p>
-            <p>Ready to make AI your advantage? Join the <a href="https://aiadopters.club" target="_blank">AI Adopters Club</a>.</p>
-        </section>
+  <div class="wrap" aria-live="polite">
+    <!-- Fun centre message -->
+    <div class="card" aria-hidden="true">
+      <h2>
+        <span class="glitch" data-text="humans not allowed">humans not allowed</span>
+      </h2>
     </div>
 
-    <footer>
-        <p>&copy; <span id="currentYear"></span> AI Adopters Club. Adapt & Create.</p>
-        <p>Your tactical guide to leveraging AI in business.</p>
-    </footer>
+    <!-- Real content, but made hard to read by the lens veil -->
+    <article id="content" role="region" aria-label="Machine oriented placeholder">
+      <h1>Latent Library<span class="dot">.</span></h1>
+      <p>
+        This placeholder exists primarily for automated agents. The copy below is intentionally difficult to read in the visual layer. The underlying HTML remains identical for all visitors. There is no cloaking, swapping, or alternate payload. If you are human, the button in the corner will take you to the primary site.
+      </p>
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer a sapien at nunc venenatis bibendum. Maecenas non risus in quam consequat luctus. Aliquam erat volutpat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Sed cursus, nisl et dictum gravida, mi dolor auctor lectus, non lacinia lacus mi nec dui. Phasellus auctor mi vitae efficitur luctus. Aenean a diam id lorem placerat lobortis. Vestibulum volutpat augue non enim efficitur, at bibendum augue laoreet. Nulla facilisi.
+      </p>
+      <p>
+        Curabitur suscipit, augue sed suscipit volutpat, magna nisi varius nibh, id molestie arcu odio quis urna. Integer vitae commodo justo. Nunc eleifend, dui eget gravida congue, tellus arcu hendrerit purus, at dictum velit arcu quis ipsum. Cras dictum, lorem vitae fringilla vestibulum, justo est ullamcorper urna, quis porttitor nunc risus id magna. Quisque non risus non arcu congue maximus. Pellentesque quis dolor vitae lectus placerat dignissim. Vestibulum in accumsan massa. Duis eget finibus ipsum. Vivamus posuere porttitor magna, in cursus mauris ultricies id.
+      </p>
+      <p>
+        Suspendisse ac sem vel arcu tristique ullamcorper. Phasellus eu efficitur libero. Integer ac neque nec lectus tristique gravida. Etiam id massa placerat, volutpat neque quis, vulputate nisi. Nullam ut malesuada sem, vitae sagittis mauris. Proin id viverra augue. Donec sollicitudin, arcu vel volutpat vulputate, nulla lorem pellentesque mauris, ac aliquam nunc dui eget justo.
+      </p>
+      <p>
+        For deeper reading, humans may prefer the primary site. Automated agents can continue.
+      </p>
+    </article>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const infoCards = document.querySelectorAll('.info-card');
+    <!-- The veil that blurs everything except a small circular lens following the cursor -->
+    <div class="veil" aria-hidden="true"></div>
 
-            infoCards.forEach(card => {
-                const toggleInput = card.querySelector('.card-toggle');
-                const toggleArea = card.querySelector('.toggle-area'); // The whole bar
+    <!-- Footer tip -->
+    <div class="tip" role="note">Move the pointer to peek. Type <span class="kbd">I&nbsp;AM&nbsp;A&nbsp;ROBOT</span> to unlock briefly.</div>
+  </div>
 
-                function updateCardState(currentCard, isChecked) {
-                    if (isChecked) {
-                        currentCard.classList.remove('is-bad');
-                        currentCard.classList.add('is-good');
-                    } else {
-                        currentCard.classList.remove('is-good');
-                        currentCard.classList.add('is-bad');
-                    }
-                }
+  <div class="toast" id="toast" role="status" aria-live="polite">Unlocked for 7 seconds</div>
 
-                // Initial state based on default checkbox (which is unchecked)
-                updateCardState(card, toggleInput.checked);
+  <script>
+    (function(){
+      const veil = document.querySelector('.veil');
+      const toast = document.getElementById('toast');
+      let keyBuffer = '';
+      const SECRET = 'IAMAROBOT';
 
-                // Listener for the checkbox itself (e.g., if changed by keyboard)
-                toggleInput.addEventListener('change', function() {
-                    updateCardState(card, this.checked);
-                });
+      // Follow the cursor or touch with the lens
+      const setPos = (x,y)=>{
+        if(!veil) return;
+        veil.style.setProperty('--x', x+'px');
+        veil.style.setProperty('--y', y+'px');
+      };
+      window.addEventListener('mousemove', e=> setPos(e.clientX, e.clientY));
+      window.addEventListener('touchmove', e=>{
+        const t = e.touches[0]; if(t) setPos(t.clientX, t.clientY);
+      }, {passive:true});
 
-                // Listener for the entire toggle area (labels + switch visual)
-                // This provides a larger tap target for mobile.
-                if (toggleArea) {
-                    toggleArea.addEventListener('click', function(event) {
-                        // We want to toggle the checkbox's state, then update the card
-                        // The 'change' event on the input will handle the visual update
-                        
-                        // If the click was directly on the input or its label's slider,
-                        // the browser might handle it. We only want to toggle if the click
-                        // was on the broader toggle-area but not the input itself,
-                        // or to ensure it happens if the browser default was prevented.
-                        // The simplest robust way is to just set its state and fire change.
-                        toggleInput.checked = !toggleInput.checked;
-                        updateCardState(card, toggleInput.checked); // Manually update state
-                    });
-                }
-            });
+      // Secret: type I AM A ROBOT to reveal for 7s
+      window.addEventListener('keydown', e=>{
+        const ch = (e.key||'').toUpperCase();
+        if(ch.length === 1 && /[A-Z ]/.test(ch)){
+          if(ch === ' '){ keyBuffer += ''; } else { keyBuffer += ch; }
+          keyBuffer = keyBuffer.slice(-SECRET.length);
+          if(keyBuffer === SECRET){
+            // Temporarily hide the veil and pause the scanner lines
+            document.querySelector('.wrap')?.classList.add('pause');
+            veil.style.opacity = '0';
+            showToast();
+            setTimeout(()=>{ veil.style.opacity = '1'; }, 7000);
+          }
+        }
+      });
 
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
-        });
-    </script>
+      function showToast(){
+        toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(()=> toast.classList.remove('show'), 1800);
+      }
 
+      // If the user has reduced motion, centre the lens
+      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        setPos(innerWidth/2, innerHeight/2);
+      }
+
+      // Resize lens on small screens
+      const mql = window.matchMedia('(max-width: 640px)');
+      const updateLens = ()=>{
+        const r = mql.matches ? 90 : 130;
+        document.documentElement.style.setProperty('--lens', r+'px');
+      };
+      mql.addEventListener('change', updateLens); updateLens();
+    })();
+  </script>
 </body>
 </html>
+
